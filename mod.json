@@ -1,0 +1,20 @@
+{
+  "Name": "Loadouts.Swap",
+  "Description": "When you kill someone you get their loadout",
+  "LoadPriority": 2,
+  "RequiredOnClient": false,
+  "Version": "1.0",
+
+  "Scripts": [
+    {
+      "Path": "swap.gnut",
+      "RunOn": "MP",
+      "ClientCallback": {
+        "After": "Swap_Init"
+      },
+      "ServerCallback": {
+        "After": "Swap_Init"
+      }
+    }
+  ]
+}

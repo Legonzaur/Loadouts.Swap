@@ -1,0 +1,77 @@
+global function Swap_Init
+
+void function Swap_Init() {
+    #if SERVER
+        // AddCallback_OnPlayerRespawned( ForcePlayerLoadout )
+        // AddCallback_OnPlayerGetsNewPilotLoadout( ForcePlayerLoadoutOnLoadoutChange )
+        AddCallback_OnPlayerKilled( OnPlayerKilled )
+    #endif
+}
+
+bool function GiveOnlyWeapon() {
+    return GetCurrentPlaylistVarInt("only_weapon", 0) == 1
+}
+
+table playersLoadout = {}
+#if SERVER
+    void function ForcePlayerLoadout( entity player ) {
+
+    }
+
+    void function ForcePlayerWeapons(entity player){
+        foreach ( entity weapon in player.GetMainWeapons() )
+        {
+            // if ( kraber.contains( weapon.GetWeaponClassName() ) )
+            // {
+            //     player.TakeWeaponNow( weapon.GetWeaponClassName() )
+            //     player.GiveWeapon( "mp_weapon_sniper", ["pas_fast_ads","pro_screen","extended_ammo", "ricochet"] )
+            //     SendHudMessage( player, "SMGS and Assault Rifles are disabled", -1, 0.4, 255, 255, 255, 255, 0.15, 3.0, 0.5 )
+            // }
+            // else if ( secondary.contains( weapon.GetWeaponClassName() ) )
+            // {
+            //     player.TakeWeaponNow( weapon.GetWeaponClassName() )
+            //     player.GiveWeapon( "mp_weapon_wingman", ["extended_ammo","pro_screen","pas_fast_reload"] )
+            // }
+
+        }
+    }
+
+    void function OnPlayerKilled( entity victim, entity attacker, var damageInfo ){
+        if ( !victim.IsPlayer() || !attacker.IsPlayer() || GetGameState() != eGameState.Playing || attacker == victim )
+            return
+        if(GiveOnlyWeapon()){
+            GiveWeapon(victim, attacker)
+            return
+        }
+        GivePlayerLoadout(victim, attacker)
+}
+
+    void function ForcePlayerLoadoutOnLoadoutChange(entity player, PilotLoadoutDef loadout ) {
+        ForcePlayerLoadout( player )
+    }
+
+    void function GivePlayerLoadout(entity from, entity to){
+        array<entity> offhand = from.GetOffhandWeapons()
+        array<entity> main = from.GetMainWeapons()
+        foreach ( entity weapon in to.GetMainWeapons() )
+        {
+            to.TakeWeaponNow( weapon.GetWeaponClassName() )
+        }
+        to.TakeOffhandWeapon(0)
+        to.TakeOffhandWeapon(1)
+        foreach ( entity weapon in main )
+        {
+            to.GiveWeapon( weapon.GetWeaponClassName(), weapon.GetMods() )
+        }
+        to.GiveOffhandWeapon(offhand[0].GetWeaponClassName(),0, offhand[0].GetMods())
+        to.GiveOffhandWeapon(offhand[1].GetWeaponClassName(),1, offhand[1].GetMods())
+    }
+    void function GiveWeapon(entity from, entity to){
+        entity weapon = from.GetActiveWeapon()
+        to.TakeWeaponNow(to.GetActiveWeapon().GetWeaponClassName())
+        to.TakeWeaponNow(from.GetActiveWeapon().GetWeaponClassName())
+        to.GiveWeapon(weapon.GetWeaponClassName(), weapon.GetMods())
+    }
+
+
+#endif
